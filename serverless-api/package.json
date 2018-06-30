@@ -1,0 +1,30 @@
+{
+  "name": "serverless-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha spec/*.spec.js --timeout 10000",
+    "start": "node bin/www",
+    "deploy": "serverless deploy"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aws-serverless-express": "^3.2.0",
+    "body-parser": "^1.18.3",
+    "cors": "^2.8.4",
+    "dotenv": "^6.0.0",
+    "dynamoose": "^0.8.7",
+    "express": "^4.16.3"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.266.1",
+    "mocha": "^5.2.0",
+    "serverless": "^1.27.3",
+    "serverless-apigw-binary": "^0.4.4",
+    "should": "^13.2.1",
+    "supertest": "^3.1.0"
+  }
+}

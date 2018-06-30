@@ -1,0 +1,243 @@
+{
+  "service": {
+    "service": "ServerlessHandsOnPart2",
+    "serviceObject": {
+      "name": "ServerlessHandsOnPart2"
+    },
+    "provider": {
+      "stage": "dev",
+      "region": "ap-northeast-2",
+      "variableSyntax": "\\${([ ~:a-zA-Z0-9._'\",\\-\\/\\(\\)]+?)}",
+      "name": "aws",
+      "runtime": "nodejs8.10",
+      "memorySize": 256,
+      "timeout": 30,
+      "deploymentBucket": "rheehot-serverless-hands-on-1",
+      "environment": {
+        "NODE_ENV": "production"
+      },
+      "iamRoleStatements": [
+        {
+          "Effect": "Allow",
+          "Action": [
+            "dynamodb:DescribeTable",
+            "dynamodb:Query",
+            "dynamodb:Scan",
+            "dynamodb:GetItem",
+            "dynamodb:PutItem",
+            "dynamodb:UpdateItem",
+            "dynamodb:DeleteItem"
+          ],
+          "Resource": "arn:aws:dynamodb:ap-northeast-2:*:*"
+        }
+      ],
+      "versionFunctions": true,
+      "remoteFunctionData": null,
+      "compiledCloudFormationTemplate": {
+        "AWSTemplateFormatVersion": "2010-09-09",
+        "Description": "The AWS CloudFormation template for this Serverless application",
+        "Resources": {
+          "CrawlerLogGroup": {
+            "Type": "AWS::Logs::LogGroup",
+            "Properties": {
+              "LogGroupName": "/aws/lambda/ServerlessHandsOnPart2-dev-crawler"
+            }
+          },
+          "IamRoleLambdaExecution": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+              "AssumeRolePolicyDocument": {
+                "Version": "2012-10-17",
+                "Statement": [
+                  {
+                    "Effect": "Allow",
+                    "Principal": {
+                      "Service": [
+                        "lambda.amazonaws.com"
+                      ]
+                    },
+                    "Action": [
+                      "sts:AssumeRole"
+                    ]
+                  }
+                ]
+              },
+              "Policies": [
+                {
+                  "PolicyName": {
+                    "Fn::Join": [
+                      "-",
+                      [
+                        "dev",
+                        "ServerlessHandsOnPart2",
+                        "lambda"
+                      ]
+                    ]
+                  },
+                  "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:CreateLogStream"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ServerlessHandsOnPart2-dev-crawler:*"
+                          }
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "logs:PutLogEvents"
+                        ],
+                        "Resource": [
+                          {
+                            "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ServerlessHandsOnPart2-dev-crawler:*:*"
+                          }
+                        ]
+                      },
+                      {
+                        "$ref": "$[\"service\"][\"provider\"][\"iamRoleStatements\"][0]"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "Path": "/",
+              "RoleName": {
+                "Fn::Join": [
+                  "-",
+                  [
+                    "ServerlessHandsOnPart2",
+                    "dev",
+                    "ap-northeast-2",
+                    "lambdaRole"
+                  ]
+                ]
+              }
+            }
+          },
+          "CrawlerLambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+              "Code": {
+                "S3Bucket": "rheehot-serverless-hands-on-1",
+                "S3Key": "serverless/ServerlessHandsOnPart2/dev/1530340347605-2018-06-30T06:32:27.605Z/ServerlessHandsOnPart2.zip"
+              },
+              "FunctionName": "ServerlessHandsOnPart2-dev-crawler",
+              "Handler": "handler.crawler",
+              "MemorySize": 256,
+              "Role": {
+                "Fn::GetAtt": [
+                  "IamRoleLambdaExecution",
+                  "Arn"
+                ]
+              },
+              "Runtime": "nodejs8.10",
+              "Timeout": 30,
+              "Environment": {
+                "Variables": {
+                  "NODE_ENV": "production"
+                }
+              }
+            },
+            "DependsOn": [
+              "CrawlerLogGroup",
+              "IamRoleLambdaExecution"
+            ]
+          },
+          "CrawlerLambdaVersionmG32cwGj4J4vUrS51JEjpbrlm1RVolVzE3QgtWtnc": {
+            "Type": "AWS::Lambda::Version",
+            "DeletionPolicy": "Retain",
+            "Properties": {
+              "FunctionName": {
+                "Ref": "CrawlerLambdaFunction"
+              },
+              "CodeSha256": "bBT96T005PYVe7Ii2BC2OunbipD80zatRwlv7AS/I9M="
+            }
+          },
+          "CrawlerEventsRuleSchedule1": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+              "ScheduleExpression": "rate(1 minutes)",
+              "State": "ENABLED",
+              "Targets": [
+                {
+                  "Arn": {
+                    "Fn::GetAtt": [
+                      "CrawlerLambdaFunction",
+                      "Arn"
+                    ]
+                  },
+                  "Id": "crawlerSchedule"
+                }
+              ]
+            }
+          },
+          "CrawlerLambdaPermissionEventsRuleSchedule1": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+              "FunctionName": {
+                "Fn::GetAtt": [
+                  "CrawlerLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Action": "lambda:InvokeFunction",
+              "Principal": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "events.",
+                    {
+                      "Ref": "AWS::URLSuffix"
+                    }
+                  ]
+                ]
+              },
+              "SourceArn": {
+                "Fn::GetAtt": [
+                  "CrawlerEventsRuleSchedule1",
+                  "Arn"
+                ]
+              }
+            }
+          }
+        },
+        "Outputs": {
+          "ServerlessDeploymentBucketName": {
+            "Value": "rheehot-serverless-hands-on-1"
+          },
+          "CrawlerLambdaFunctionQualifiedArn": {
+            "Description": "Current Lambda function version",
+            "Value": {
+              "Ref": "CrawlerLambdaVersionmG32cwGj4J4vUrS51JEjpbrlm1RVolVzE3QgtWtnc"
+            }
+          }
+        }
+      },
+      "vpc": {}
+    },
+    "functions": {
+      "crawler": {
+        "handler": "handler.crawler",
+        "events": [
+          {
+            "schedule": "rate(1 minutes)"
+          }
+        ],
+        "name": "ServerlessHandsOnPart2-dev-crawler",
+        "package": {},
+        "vpc": {}
+      }
+    },
+    "artifact": "/home/ec2-user/environment/serverless-crawler/.serverless/ServerlessHandsOnPart2.zip"
+  },
+  "package": {
+    "artifactDirectoryName": "serverless/ServerlessHandsOnPart2/dev/1530340347605-2018-06-30T06:32:27.605Z",
+    "artifact": "ServerlessHandsOnPart2.zip"
+  }
+}
